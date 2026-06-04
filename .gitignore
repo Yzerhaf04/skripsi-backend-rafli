@@ -1,0 +1,19 @@
+# Dependency directories
+node_modules/
+
+# Environment variables (NEVER commit this!)
+.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Optional npm cache directory
+.npm
+
+# Coverage directory used by testing frameworks
+coverage/
+
+# Mac OS folder attributes (if using Mac)
+.DS_Store
