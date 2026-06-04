@@ -1,6 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
-import sequelize from './db/sequelize'; // Import your database connection
+import sequelize from './src/db/sequelize'; // Import your database connection
 
 // Load environment variables
 dotenv.config();
