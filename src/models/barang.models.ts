@@ -41,11 +41,11 @@ Barang.init(
     },
     kategori_id: {
       type: DataTypes.INTEGER,
-      allowNull: true, // Ubah ke false jika di database diset NOT NULL
+      allowNull: false, // Ubah ke false jika di database diset NOT NULL
     },
     satuan_id: {
       type: DataTypes.INTEGER,
-      allowNull: true, // Ubah ke false jika di database diset NOT NULL
+      allowNull: false, // Ubah ke false jika di database diset NOT NULL
     },
   },
   {
