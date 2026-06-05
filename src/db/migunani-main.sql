@@ -215,11 +215,11 @@ INSERT INTO public.tempat_simpan (ts_id, ts_name) VALUES
 
 -- Insert data ke tabel user_list
 INSERT INTO public.user_list (ul_id, ul_name, ul_password, ur_id) VALUES
-(1, 'admin 1', 'admin@1', 1),
+(1, 'admin Bella', 'admin@bella', 1),
 (2, 'admin 2', 'admin@2', 1),
 (3, 'owner 1', 'owner@1', 2),
 (4, 'owner 2', 'owner@2', 2),
 (5, 'owner 3', 'owner@3', 2),
-(6, 'kasir 1', 'kasir@1', 3),
-(7, 'kasir 2', 'kasir@2', 3),
-(8, 'kasir 3', 'kasir@3', 3);
+(6, 'kasir Kampung Hutan', 'kasir@kampunghutan', 3),
+(7, 'kasir Bintaro Kesehatan', 'kasir@bintarokesehatan', 3),
+(8, 'kasir BSD Cordoba', 'kasir@bsdcordoba', 3);
