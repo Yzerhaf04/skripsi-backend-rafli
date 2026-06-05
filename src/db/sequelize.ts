@@ -1,12 +1,21 @@
 import { Sequelize } from 'sequelize';
+import config from '../config/config'; // Import konfigurasi
 
-// Sesuaikan password dan host dengan konfigurasi PostgreSQL Anda
-const sequelize = new Sequelize('Migunani', 'postgres', '', {
-  host: 'localhost', // atau '127.0.0.1'
-  dialect: 'postgres',
-  port: 5432, // Port default PostgreSQL
-  logging: false, // Set true jika ingin melihat query SQL di terminal
-});
+// Ambil environment saat ini (dari .env NODE_ENV)
+const env = process.env.NODE_ENV || 'development';
+const dbConfig = config[env as keyof typeof config];
 
-// WAJIB: Export default agar bisa di-import dengan "import sequelize from ..."
+// Inisialisasi Sequelize menggunakan variabel dari config/.env
+const sequelize = new Sequelize(
+  dbConfig.database as string,
+  dbConfig.username as string,
+  dbConfig.password as string,
+  {
+    host: dbConfig.host,
+    dialect: dbConfig.dialect as any,
+    port: dbConfig.port as number,
+    logging: dbConfig.logging,
+  }
+);
+
 export default sequelize;

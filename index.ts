@@ -1,9 +1,12 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
-import sequelize from './src/db/sequelize'; // Import your database connection
 
-// Load environment variables
-dotenv.config();
+// 1. BACA .ENV TERLEBIH DAHULU (Paling Atas)
+dotenv.config(); 
+
+// 2. BARU IMPORT DATABASE SETELAH .ENV TERBACA
+import sequelize from './src/db/sequelize'; 
+// (sesuaikan path import sequelize-nya, misal './src/db/sequelize' jika index.ts di root)
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
@@ -13,7 +16,7 @@ app.use(express.json());
 
 // Basic health-check route
 app.get('/', (req: Request, res: Response) => {
-  res.send('Skripsi Backend Rafli is running!');
+  res.send('Skripsi Backend Rafli is running! | Skripsi Backend Rafli berjalan!');
 });
 
 // Test Database Connection and Start Server
