@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-// Meng-extend Request dari Express agar bisa menyimpan data user dari token
-export interface AuthRequest extends Request {
+// Menggunakan Omit<Request, 'user'> untuk membuang definisi 'user' yang bentrok dari global namespace
+export interface AuthRequest extends Omit<Request, 'user'> {
   user?: {
     ul_id: number;
     ur_id: number;

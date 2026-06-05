@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodSchema, ZodError } from 'zod';
+import { ZodTypeAny, ZodError, ZodIssue } from 'zod';
 
 /**
  * Middleware untuk memvalidasi request body menggunakan Zod Schema
  */
-const validate = (schema: ZodSchema) => {
+const validate = (schema: ZodTypeAny) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       // parse akan melempar error jika validasi gagal
@@ -12,8 +12,8 @@ const validate = (schema: ZodSchema) => {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        // Memformat pesan error dari Zod agar mudah dibaca oleh frontend
-        const errorMessages = error.errors.map((err) => {
+        // Menggunakan .issues dan mendefinisikan tipe ZodIssue pada err
+        const errorMessages = error.issues.map((err: ZodIssue) => {
           return `${err.path.join('.')}: ${err.message}`;
         }).join(', ');
 
