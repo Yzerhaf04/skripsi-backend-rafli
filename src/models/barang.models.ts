@@ -1,30 +1,22 @@
 import { Model, DataTypes, Optional } from 'sequelize';
-import sequelize from '../db/sequelize'; // Pastikan path file ini benar
+import sequelize from '../db/sequelize';
 
-/**
- * Interface ini mewakili struktur data di tabel 'barang'
- */
 export interface BarangAttributes {
   barang_id: number;
   barang_name: string;
   kategori_id: number;
   satuan_id: number;
+  ts_id: number; // Tambahan: Tempat Simpan ID
 }
 
-/**
- * Tipe data untuk membuat barang baru.
- * 'barang_id' bersifat Optional karena ini auto-increment (Serial).
- */
 export interface BarangCreationAttributes extends Optional<BarangAttributes, 'barang_id'> {}
 
-class Barang
-  extends Model<BarangAttributes, BarangCreationAttributes>
-  implements BarangAttributes
-{
+class Barang extends Model<BarangAttributes, BarangCreationAttributes> implements BarangAttributes {
   public barang_id!: number;
   public barang_name!: string;
   public kategori_id!: number;
   public satuan_id!: number;
+  public ts_id!: number;
 }
 
 Barang.init(
@@ -41,17 +33,21 @@ Barang.init(
     },
     kategori_id: {
       type: DataTypes.INTEGER,
-      allowNull: false, // Ubah ke false jika di database diset NOT NULL
+      allowNull: false,
     },
     satuan_id: {
       type: DataTypes.INTEGER,
-      allowNull: false, // Ubah ke false jika di database diset NOT NULL
+      allowNull: false,
+    },
+    ts_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
   },
   {
     sequelize,
-    tableName: 'barang', // Nama tabel sesuai di pgAdmin
-    timestamps: false, // Diset false karena tidak ada kolom created_at/updated_at di gambar
+    tableName: 'barang',
+    timestamps: false,
     underscored: true,
     modelName: 'Barang',
   }
