@@ -12,32 +12,59 @@ import BarangKeluarDetail from '../models/barang_keluar_detail.models';
 import StokOpname from '../models/stok_opname.models';
 import StokOpnameDetail from '../models/stok_opname_detail.models';
 
-// Helper function untuk mengubah format tanggal menjadi dd mm yyyy
-const formatTanggal = (dateString: string | Date): string => {
-  const d = new Date(dateString);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day} ${month} ${year}`;
-};
-
 /* =====================================================================
-   1. USER MANAGEMENT (CREATE, UPDATE, DELETE)
+   1. USER MANAGEMENT (CREATE, READ, UPDATE, DELETE)
    ===================================================================== */
 
+// --- READ: Mengambil semua data user ---
+export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const users = await UserList.findAll({
+      attributes: { exclude: ['ul_password'] }
+    });
+    res.status(200).json({ status: 'success', data: users });
+  } catch (error: any) {
+    res.status(500).json({ status: 'error', message: 'Gagal mengambil data user', error: error.message });
+  }
+};
+
+// --- READ: Mengambil satu data user berdasarkan ID ---
+export const getUserById = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const id = Number(req.params.id);
+    const user = await UserList.findByPk(id, {
+      attributes: { exclude: ['ul_password'] }
+    });
+
+    if (!user) {
+      res.status(404).json({ status: 'error', message: 'User tidak ditemukan' });
+      return; 
+    }
+
+    res.status(200).json({ status: 'success', data: user });
+  } catch (error: any) {
+    res.status(500).json({ status: 'error', message: 'Gagal mengambil data detail user', error: error.message });
+  }
+};
+
+// --- CREATE: Membuat user baru ---
 export const createUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { ul_name, ul_password, ur_id } = req.body;
     const newUser = await UserList.create({ ul_name, ul_password, ur_id });
-    res.status(201).json({ status: 'success', message: 'User berhasil dibuat', data: newUser });
+    
+    const { ul_password: _, ...userData } = newUser.toJSON();
+    
+    res.status(201).json({ status: 'success', message: 'User berhasil dibuat', data: userData });
   } catch (error: any) {
     res.status(500).json({ status: 'error', message: 'Gagal membuat user', error: error.message });
   }
 };
 
+// --- UPDATE: Mengubah data user ---
 export const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
     const { ul_name, ul_password, ur_id } = req.body;
     
     await UserList.update(
@@ -50,9 +77,10 @@ export const updateUser = async (req: AuthRequest, res: Response): Promise<void>
   }
 };
 
+// --- DELETE: Menghapus data user ---
 export const deleteUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
     await UserList.destroy({ where: { ul_id: id } });
     res.status(200).json({ status: 'success', message: 'User berhasil dihapus' });
   } catch (error: any) {
@@ -67,10 +95,9 @@ export const deleteUser = async (req: AuthRequest, res: Response): Promise<void>
 export const createBarangMasuk = async (req: AuthRequest, res: Response): Promise<void> => {
   const transaction = await sequelize.transaction();
   try {
-    const { bm_date, toko_id, details } = req.body;
+    const { bm_name, bm_date, toko_id, details } = req.body;
     const created_by = req.user?.ul_id;
 
-    // Ambil data Toko dan User
     const toko = await Toko.findByPk(toko_id, { transaction });
     const user = await UserList.findByPk(created_by, { transaction });
 
@@ -78,24 +105,19 @@ export const createBarangMasuk = async (req: AuthRequest, res: Response): Promis
       throw new Error('Data Toko atau User tidak ditemukan');
     }
 
-    // Format tanggal dan generate nama
-    const tanggalFormat = formatTanggal(bm_date);
-    const generated_bm_name = `Barang Masuk ${tanggalFormat} - ${toko.toko_name} (Oleh: ${user.ul_name})`;
+    const generated_bm_name = `Barang Masuk ${bm_name} - ${toko.toko_name}`;
 
-    // Insert Header
     const bmHeader = await BarangMasuk.create(
       { bm_name: generated_bm_name, bm_date, toko_id, created_by }, 
       { transaction }
     );
 
-    // Siapkan data Detail
     const bmDetailsData = details.map((detail: any) => ({
       bm_id: bmHeader.bm_id,
       barang_id: detail.barang_id,
       jumlah_barang: detail.jumlah_barang,
     }));
 
-    // Bulk Insert Detail
     await BarangMasukDetail.bulkCreate(bmDetailsData, { transaction });
 
     await transaction.commit();
@@ -109,7 +131,7 @@ export const createBarangMasuk = async (req: AuthRequest, res: Response): Promis
 export const updateBarangMasuk = async (req: AuthRequest, res: Response): Promise<void> => {
   const transaction = await sequelize.transaction();
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
     const { bm_name, bm_date, toko_id, details } = req.body;
     const updated_by = req.user?.ul_id;
 
@@ -136,11 +158,14 @@ export const updateBarangMasuk = async (req: AuthRequest, res: Response): Promis
 };
 
 export const deleteBarangMasuk = async (req: AuthRequest, res: Response): Promise<void> => {
+  const transaction = await sequelize.transaction();
   try {
-    const { id } = req.params;
-    await BarangMasuk.destroy({ where: { bm_id: id } });
+    const id = Number(req.params.id);
+    await BarangMasuk.destroy({ where: { bm_id: id }, transaction });
+    await transaction.commit();
     res.status(200).json({ status: 'success', message: 'Data Barang Masuk berhasil dihapus' });
   } catch (error: any) {
+    await transaction.rollback();
     res.status(500).json({ status: 'error', message: 'Gagal menghapus Barang Masuk', error: error.message });
   }
 };
@@ -152,7 +177,7 @@ export const deleteBarangMasuk = async (req: AuthRequest, res: Response): Promis
 export const createBarangKeluar = async (req: AuthRequest, res: Response): Promise<void> => {
   const transaction = await sequelize.transaction();
   try {
-    const { bk_date, toko_id, details } = req.body;
+    const { bk_name, bk_date, toko_id, details } = req.body;
     const created_by = req.user?.ul_id;
 
     const toko = await Toko.findByPk(toko_id, { transaction });
@@ -162,8 +187,8 @@ export const createBarangKeluar = async (req: AuthRequest, res: Response): Promi
       throw new Error('Data Toko atau User tidak ditemukan');
     }
 
-    const tanggalFormat = formatTanggal(bk_date);
-    const generated_bk_name = `Barang Keluar ${tanggalFormat} - ${toko.toko_name} (Oleh: ${user.ul_name})`;
+    // DISESUAIKAN: Format dibuat sama persis dengan Barang Masuk
+    const generated_bk_name = `Barang Keluar ${bk_name} - ${toko.toko_name}`;
 
     const bkHeader = await BarangKeluar.create(
       { bk_name: generated_bk_name, bk_date, toko_id, created_by }, 
@@ -188,7 +213,7 @@ export const createBarangKeluar = async (req: AuthRequest, res: Response): Promi
 export const updateBarangKeluar = async (req: AuthRequest, res: Response): Promise<void> => {
   const transaction = await sequelize.transaction();
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
     const { bk_name, bk_date, toko_id, details } = req.body;
     const updated_by = req.user?.ul_id;
 
@@ -214,11 +239,14 @@ export const updateBarangKeluar = async (req: AuthRequest, res: Response): Promi
 };
 
 export const deleteBarangKeluar = async (req: AuthRequest, res: Response): Promise<void> => {
+  const transaction = await sequelize.transaction();
   try {
-    const { id } = req.params;
-    await BarangKeluar.destroy({ where: { bk_id: id } });
+    const id = Number(req.params.id);
+    await BarangKeluar.destroy({ where: { bk_id: id }, transaction });
+    await transaction.commit();
     res.status(200).json({ status: 'success', message: 'Data Barang Keluar berhasil dihapus' });
   } catch (error: any) {
+    await transaction.rollback();
     res.status(500).json({ status: 'error', message: 'Gagal menghapus Barang Keluar', error: error.message });
   }
 };
@@ -230,7 +258,7 @@ export const deleteBarangKeluar = async (req: AuthRequest, res: Response): Promi
 export const createStokOpname = async (req: AuthRequest, res: Response): Promise<void> => {
   const transaction = await sequelize.transaction();
   try {
-    const { so_date, toko_id, details } = req.body;
+    const { so_name, so_date, toko_id, details } = req.body;
     const created_by = req.user?.ul_id;
 
     const toko = await Toko.findByPk(toko_id, { transaction });
@@ -240,8 +268,8 @@ export const createStokOpname = async (req: AuthRequest, res: Response): Promise
       throw new Error('Data Toko atau User tidak ditemukan');
     }
 
-    const tanggalFormat = formatTanggal(so_date);
-    const generated_so_name = `Stok Opname ${tanggalFormat} - ${toko.toko_name} (Oleh: ${user.ul_name})`;
+    // DISESUAIKAN: Format dibuat sama persis dengan Barang Masuk
+    const generated_so_name = `Stok Opname ${so_name} - ${toko.toko_name}`;
 
     const soHeader = await StokOpname.create(
       { so_name: generated_so_name, so_date, toko_id, created_by }, 
@@ -266,7 +294,7 @@ export const createStokOpname = async (req: AuthRequest, res: Response): Promise
 export const updateStokOpname = async (req: AuthRequest, res: Response): Promise<void> => {
   const transaction = await sequelize.transaction();
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
     const { so_name, so_date, toko_id, details } = req.body;
     const updated_by = req.user?.ul_id;
 
@@ -292,11 +320,14 @@ export const updateStokOpname = async (req: AuthRequest, res: Response): Promise
 };
 
 export const deleteStokOpname = async (req: AuthRequest, res: Response): Promise<void> => {
+  const transaction = await sequelize.transaction();
   try {
-    const { id } = req.params;
-    await StokOpname.destroy({ where: { so_id: id } });
+    const id = Number(req.params.id);
+    await StokOpname.destroy({ where: { so_id: id }, transaction });
+    await transaction.commit();
     res.status(200).json({ status: 'success', message: 'Data Stok Opname berhasil dihapus' });
   } catch (error: any) {
+    await transaction.rollback();
     res.status(500).json({ status: 'error', message: 'Gagal menghapus Stok Opname', error: error.message });
   }
 };
