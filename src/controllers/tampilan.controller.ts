@@ -7,6 +7,10 @@ import Kategori from '../models/kategori.models';
 import TempatSimpan from '../models/tempat_simpan'; 
 import UserRole from '../models/user_role.models';
 
+// =====================================================================
+// FUNGSI UNTUK MENGAMBIL DATA REFERENSI (READ)
+// =====================================================================
+
 export const getSemuaReferensi = async (req: Request, res: Response): Promise<Response | void> => {
   try {
     // Mengambil semua data master secara paralel agar proses lebih cepat
@@ -89,15 +93,14 @@ export const getReferensiUserRole = async (req: Request, res: Response): Promise
 };
 
 // =====================================================================
-// FUNGSI UNTUK MENGUPDATE DATA REFERENSI
+// FUNGSI UNTUK MENGUPDATE DATA REFERENSI (UPDATE)
 // =====================================================================
 
 export const updateReferensiToko = async (req: Request, res: Response): Promise<Response | void> => {
   try {
     const { id } = req.params;
-    const { toko_name } = req.body; // Sesuaikan dengan nama kolom di body request
+    const { toko_name } = req.body;
     
-    // Melakukan update dimana toko_id sama dengan id di parameter
     await Toko.update({ toko_name }, { where: { toko_id: id } });
     
     return res.status(200).json({ status: 'success', message: 'Data toko berhasil diperbarui' });
