@@ -40,7 +40,7 @@ const startServer = async () => {
       console.log(`Server is running on http://localhost:${port}. Server berjalan di http://localhost:${port}`);
     });
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
+    console.error('Unable to connect to the database. Gagal terhubung ke database.', error);
   }
 };
 
