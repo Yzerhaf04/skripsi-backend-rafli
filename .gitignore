@@ -21,4 +21,5 @@ coverage/
 package-lock.json
 package.json
 db/migunani-db.sql
-# db/migunani-main.sql
+db/migunani-main.sql
+dist/

@@ -1,20 +1,22 @@
-import { Sequelize } from 'sequelize';
-import config from '../config/config'; // Import konfigurasi
+import { Sequelize, Options } from 'sequelize';
+import config from '../config/config'; // Pastikan path ini mengarah ke file konfigurasi yang benar
 
-// Ambil environment saat ini (dari .env NODE_ENV)
+// Ambil environment saat ini
 const env = process.env.NODE_ENV || 'development';
-const dbConfig = config[env as keyof typeof config];
 
-// Inisialisasi Sequelize menggunakan variabel dari config/.env
+// Menggunakan Type Assertion 'as Record<string, Options>' agar TypeScript tahu objek ini bisa diindeks dengan string (env)
+const currentConfig = (config as Record<string, Options>)[env] || (config as Record<string, Options>)['development'];
+
+// Inisialisasi Sequelize dengan menjamin tidak ada nilai 'undefined' yang lolos
 const sequelize = new Sequelize(
-  dbConfig.database as string,
-  dbConfig.username as string,
-  dbConfig.password as string,
+  currentConfig.database ?? '',
+  currentConfig.username ?? '',
+  currentConfig.password ?? '',
   {
-    host: dbConfig.host,
-    dialect: dbConfig.dialect as any,
-    port: dbConfig.port as number,
-    logging: dbConfig.logging,
+    host: currentConfig.host ?? 'localhost',
+    dialect: currentConfig.dialect,
+    port: currentConfig.port ? Number(currentConfig.port) : 5432,
+    logging: currentConfig.logging ?? false,
   }
 );
 

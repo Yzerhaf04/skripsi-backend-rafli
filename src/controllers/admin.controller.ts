@@ -98,6 +98,11 @@ export const createBarangMasuk = async (req: AuthRequest, res: Response): Promis
     const { bm_name, bm_date, toko_id, details } = req.body;
     const created_by = req.user?.ul_id;
 
+    // VALIDASI: Pastikan ID user tersedia dari token/middleware auth
+    if (!created_by) {
+      throw new Error('Sesi user tidak valid atau expired');
+    }
+
     const toko = await Toko.findByPk(toko_id, { transaction });
     const user = await UserList.findByPk(created_by, { transaction });
 
@@ -134,6 +139,11 @@ export const updateBarangMasuk = async (req: AuthRequest, res: Response): Promis
     const id = Number(req.params.id);
     const { bm_name, bm_date, toko_id, details } = req.body;
     const updated_by = req.user?.ul_id;
+
+    // VALIDASI: Pastikan ID user tersedia
+    if (!updated_by) {
+      throw new Error('Sesi user tidak valid atau expired');
+    }
 
     await BarangMasuk.update(
       { bm_name, bm_date, toko_id, updated_by, updated_at: new Date() },
@@ -180,6 +190,11 @@ export const createBarangKeluar = async (req: AuthRequest, res: Response): Promi
     const { bk_name, bk_date, toko_id, details } = req.body;
     const created_by = req.user?.ul_id;
 
+    // VALIDASI: Pastikan ID user tersedia
+    if (!created_by) {
+      throw new Error('Sesi user tidak valid atau expired');
+    }
+
     const toko = await Toko.findByPk(toko_id, { transaction });
     const user = await UserList.findByPk(created_by, { transaction });
 
@@ -187,7 +202,6 @@ export const createBarangKeluar = async (req: AuthRequest, res: Response): Promi
       throw new Error('Data Toko atau User tidak ditemukan');
     }
 
-    // DISESUAIKAN: Format dibuat sama persis dengan Barang Masuk
     const generated_bk_name = `Barang Keluar ${bk_name} - ${toko.toko_name}`;
 
     const bkHeader = await BarangKeluar.create(
@@ -216,6 +230,11 @@ export const updateBarangKeluar = async (req: AuthRequest, res: Response): Promi
     const id = Number(req.params.id);
     const { bk_name, bk_date, toko_id, details } = req.body;
     const updated_by = req.user?.ul_id;
+
+    // VALIDASI: Pastikan ID user tersedia
+    if (!updated_by) {
+      throw new Error('Sesi user tidak valid atau expired');
+    }
 
     await BarangKeluar.update(
       { bk_name, bk_date, toko_id, updated_by, updated_at: new Date() },
@@ -261,6 +280,11 @@ export const createStokOpname = async (req: AuthRequest, res: Response): Promise
     const { so_name, so_date, toko_id, details } = req.body;
     const created_by = req.user?.ul_id;
 
+    // VALIDASI: Pastikan ID user tersedia
+    if (!created_by) {
+      throw new Error('Sesi user tidak valid atau expired');
+    }
+
     const toko = await Toko.findByPk(toko_id, { transaction });
     const user = await UserList.findByPk(created_by, { transaction });
 
@@ -268,7 +292,6 @@ export const createStokOpname = async (req: AuthRequest, res: Response): Promise
       throw new Error('Data Toko atau User tidak ditemukan');
     }
 
-    // DISESUAIKAN: Format dibuat sama persis dengan Barang Masuk
     const generated_so_name = `Stok Opname ${so_name} - ${toko.toko_name}`;
 
     const soHeader = await StokOpname.create(
@@ -297,6 +320,11 @@ export const updateStokOpname = async (req: AuthRequest, res: Response): Promise
     const id = Number(req.params.id);
     const { so_name, so_date, toko_id, details } = req.body;
     const updated_by = req.user?.ul_id;
+
+    // VALIDASI: Pastikan ID user tersedia
+    if (!updated_by) {
+      throw new Error('Sesi user tidak valid atau expired');
+    }
 
     await StokOpname.update(
       { so_name, so_date, toko_id, updated_by, updated_at: new Date() },
