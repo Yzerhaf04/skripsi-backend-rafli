@@ -1,22 +1,30 @@
-import { Sequelize, Options } from 'sequelize';
-import config from '../config/config'; // Pastikan path ini mengarah ke file konfigurasi yang benar
+import { Sequelize } from 'sequelize';
+import config from '../config/config';
 
 // Ambil environment saat ini
 const env = process.env.NODE_ENV || 'development';
 
-// Menggunakan Type Assertion 'as Record<string, Options>' agar TypeScript tahu objek ini bisa diindeks dengan string (env)
-const currentConfig = (config as Record<string, Options>)[env] || (config as Record<string, Options>)['development'];
+// Ambil config berdasarkan env, jika tidak ada gunakan development
+const dbConfig = config[env] || config['development'];
 
-// Inisialisasi Sequelize dengan menjamin tidak ada nilai 'undefined' yang lolos
+if (!dbConfig) {
+  throw new Error(`Database configuration not found for environment from sequelize "${env}"`);
+}
+
+if (!dbConfig.dialect) {
+  throw new Error(`Database dialect tidak ditemukan untuk environment dari sequelize "${env}"`);
+}
+
+// Inisialisasi Sequelize
 const sequelize = new Sequelize(
-  currentConfig.database ?? '',
-  currentConfig.username ?? '',
-  currentConfig.password ?? '',
+  dbConfig.database,
+  dbConfig.username,
+  dbConfig.password,
   {
-    host: currentConfig.host ?? 'localhost',
-    dialect: currentConfig.dialect,
-    port: currentConfig.port ? Number(currentConfig.port) : 5432,
-    logging: currentConfig.logging ?? false,
+    host: dbConfig.host,
+    dialect: dbConfig.dialect,
+    port: dbConfig.port ?? 5432,         // Mencegah 'undefined' masuk ke properti port
+    logging: dbConfig.logging ?? false,  // Mencegah 'undefined' masuk ke properti logging
   }
 );
 
