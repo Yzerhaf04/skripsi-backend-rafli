@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import sequelize from '../db/sequelize';
 import { AuthRequest } from '../middleware/auth.middleware';
+import bcrypt from 'bcryptjs';
 
 // Import Models
 import UserList from '../models/user_list.models';
@@ -51,7 +52,16 @@ export const getUserById = async (req: AuthRequest, res: Response): Promise<void
 export const createUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { ul_name, ul_password, ur_id } = req.body;
-    const newUser = await UserList.create({ ul_name, ul_password, ur_id });
+    
+    // Hash password sebelum dimasukkan ke database
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(ul_password, salt);
+
+    const newUser = await UserList.create({ 
+      ul_name, 
+      ul_password: hashedPassword, 
+      ur_id 
+    });
     
     const { ul_password: _, ...userData } = newUser.toJSON();
     
@@ -67,10 +77,15 @@ export const updateUser = async (req: AuthRequest, res: Response): Promise<void>
     const id = Number(req.params.id);
     const { ul_name, ul_password, ur_id } = req.body;
     
-    await UserList.update(
-      { ul_name, ul_password, ur_id },
-      { where: { ul_id: id } }
-    );
+    const updateData: any = { ul_name, ur_id };
+
+    // Jika admin memasukkan password baru saat update, hash password tersebut
+    if (ul_password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.ul_password = await bcrypt.hash(ul_password, salt);
+    }
+    
+    await UserList.update(updateData, { where: { ul_id: id } });
     res.status(200).json({ status: 'success', message: 'User berhasil diperbarui' });
   } catch (error: any) {
     res.status(500).json({ status: 'error', message: 'Gagal memperbarui user', error: error.message });

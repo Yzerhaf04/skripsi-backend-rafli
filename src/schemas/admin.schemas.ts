@@ -3,7 +3,9 @@ import { z } from 'zod';
 // =====================================================================
 // 1. SCHEMA UNTUK USER MANAGEMENT
 // =====================================================================
-export const userSchema = z.object({
+
+// Skema untuk CREATE (Membuat user baru -> Password Wajib)
+export const createUserSchema = z.object({
   ul_name: z
     .string({ message: 'Nama user wajib diisi' })
     .min(1, 'Nama user tidak boleh kosong')
@@ -12,6 +14,24 @@ export const userSchema = z.object({
     .string({ message: 'Password wajib diisi' })
     .min(6, 'Password minimal 6 karakter')
     .max(255, 'Password maksimal 255 karakter'),
+  ur_id: z
+    .number({ message: 'Role ID (ur_id) wajib diisi' })
+    .int('Role ID harus berupa angka bulat')
+    .positive('Role ID tidak valid'),
+});
+
+// Skema untuk UPDATE (Mengubah data user -> Password Opsional)
+export const updateUserSchema = z.object({
+  ul_name: z
+    .string({ message: 'Nama user wajib diisi' })
+    .min(1, 'Nama user tidak boleh kosong')
+    .max(100, 'Nama user maksimal 100 karakter'),
+  ul_password: z
+    .string()
+    .min(6, 'Password minimal 6 karakter')
+    .max(255, 'Password maksimal 255 karakter')
+    .optional() // Membuat properti ini boleh tidak dikirim (undefined)
+    .or(z.literal('')), // Memperbolehkan string kosong ("") jika frontend tetap mengirimkan field ini tapi isinya kosong
   ur_id: z
     .number({ message: 'Role ID (ur_id) wajib diisi' })
     .int('Role ID harus berupa angka bulat')
